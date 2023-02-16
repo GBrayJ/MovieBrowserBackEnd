@@ -2,6 +2,7 @@ const algoliasearch = require('algoliasearch');
 const { getFirestore } = require('firebase-admin/firestore');
 const admin = require("firebase-admin");
 const express = require('express');
+require('dotenv').config();
 const serviceAccount = {
     "type": process.env.TYPE,
     "project_id": process.env.PROJECT_ID,
