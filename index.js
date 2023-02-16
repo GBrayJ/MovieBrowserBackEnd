@@ -1,5 +1,5 @@
 const algoliasearch = require('algoliasearch');
-const { getFirestore } = require('firebase-admin/firestore');
+const {getFirestore} = require('firebase-admin/firestore');
 const admin = require("firebase-admin");
 const express = require('express');
 const cors = require('cors');
@@ -17,17 +17,17 @@ const serviceAccount = {
     "client_x509_cert_url": process.env.CLIENT_X509_CERT_URL
 }
 const bodyParser = require("body-parser");
-const client = algoliasearch('P4GH5MJ3RF', '522e655b88c66ee65a01c10a749649eb',{
+const client = algoliasearch('P4GH5MJ3RF', '522e655b88c66ee65a01c10a749649eb', {});
+const moviesIndex = client.initIndex('movies');
+const actorsIndex = client.initIndex('actors');
 
-});
-const index = client.initIndex('movies');
 
 admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+    credential: admin.credential.cert(serviceAccount)
 });
 
 const db = getFirestore();
-db.settings({ ignoreUndefinedProperties: true })
+db.settings({ignoreUndefinedProperties: true})
 
 const app = express();
 const config = {
@@ -105,7 +105,7 @@ app.put('/data/movie/:id', (req, res) => {
                 movie.imageurl = req.body.imageurl;
             }
             movieRef.set(movie);
-            index.partialUpdateObject(movie).then((content) => {
+            moviesIndex.partialUpdateObject(movie).then((content) => {
                 console.log(content)
             }).catch((error) => {
                 console.log(error)
@@ -138,11 +138,11 @@ app.post('/data/movie/new', (req, res) => {
     };
     movieRef.add(movie).then((docRef) => {
         movie.objectID = docRef.id;
-        index.saveObject(movie).then((content) => {
-                console.log(content)
-            }).catch((error) => {
-                console.log(error)
-            });
+        moviesIndex.saveObject(movie).then((content) => {
+            console.log(content)
+        }).catch((error) => {
+            console.log(error)
+        });
         movie.id = docRef.objectID;
         res.send(movie);
     })
@@ -157,7 +157,7 @@ app.delete('/data/movie/:id', (req, res) => {
             movie.objectID = doc.id;
             movieRef.delete();
             console.log(movie);
-            index.deleteObject(movie.objectID).then((content) => {
+            moviesIndex.deleteObject(movie.objectID).then((content) => {
                 console.log(content)
             }).catch((error) => {
                 console.log(error)
@@ -173,14 +173,121 @@ app.delete('/data/movie/:id', (req, res) => {
 
 app.get('/data/search/', (req, res) => {
     res.set('Access-Control-Allow-Origin', '*');
-    if(!req.body.searchterm) {
+    if (!req.body.searchterm) {
         res.end("Please send a searchterm in the body of the request.");
         return;
     }
-  const searchterm = req.body.searchterm;
+    const searchterm = req.body.searchterm;
     res.end(`Searchterm: ${searchterm}`);
 })
+
+app.get('/movies/actors/:actor', (req, res) => {
+    const id = req.params.actor;
+    const movieRef = db.collection('movies');
+    let query = movieRef.where('actors', 'array-contains', id);
+    query.get().then((snapshot) => {
+        const movies = [];
+        snapshot.forEach((doc) => {
+            const movie = doc.data();
+            movie.objectID = doc.id;
+            movies.push(movie);
+        });
+        res.send(movies);
+    })
+})
+app.get('/actors/find/', (req, res) => {
+    const name = req.body.actor;
+    const actorRef = db.collection('actors');
+    let query = actorRef.where('actor_info.name', '==', name);
+    query.get().then((snapshot) => {
+        const actors = [];
+        snapshot.forEach((doc) => {
+            const actor = doc.data();
+            actor.objectID = doc.id;
+            actors.push(actor);
+        });
+        res.send(actors);
+    })
+})
+
+app.get('/actors/:id', (req, res) => {
+  const objectID = req.params.id;
+    const actorRef = db.collection('actors').doc(objectID);
+    actorRef.get().then((doc) => {
+        if (doc.exists) {
+            const actor = doc.data();
+            actor.objectID = doc.id;
+            res.send(actor);
+        } else {
+            res.send('No such document!');
+        }
+    }).catch((error) => {
+        res.send(`Error getting document: ${error}`);
+    })
+})
+
+app.post('/actors/new', (req, res) => {
+  const actorRef = db.collection('actors');
+  if (req.body.name || req.body.imageurl) {
+      let actor = {
+            actor_info: {
+                name: req.body.name,
+                imageurl: req.body.imageurl
+            },
+            movies: req.body.movies
+      }
+      actorRef.add(actor).then((docRef) => {
+          actor.objectID = docRef.id;
+          res.send(actor);
+          actorsIndex.saveObject(actor).then((content) => {
+                console.log(content)
+          }).catch((error) => {
+                console.log(error)
+          });
+      })
+
+  } else {
+      res.send(`Please send all required fields. Missing: ${!req.body.name ? 'name' : ''} ${!req.body.imageurl ? 'imageurl' : ''}`);
+  }
+})
+
+app.put('/actors/:id', (req, res) => {
+  const actorsRef = db.collection('actors');
+    const objectID = req.params.id;
+    const actorRef = actorsRef.doc(objectID);
+    actorRef.get().then((doc) => {
+        if (doc.exists) {
+            let actor = doc.data();
+            actor.objectID = doc.id;
+            if (req.body.name) {
+                actor.actor_info.name = req.body.name;
+            }
+            if (req.body.imageurl) {
+                actor.actor_info.imageurl = req.body.imageurl;
+            }
+            if (req.body.movies) {
+                actor.movies = req.body.movies;
+            }
+            actorRef.set(actor).catch((error) => {
+                console.log(error);
+            });
+            res.send(actor);
+            actorsIndex.saveObject(actor).then((content) => {
+                console.log(content)
+            }).catch((error) => {
+                console.log(error)
+            });
+        } else {
+            res.send('No such document!');
+        }
+    }).catch((error) => {
+        res.send(`Error getting document: ${error}`);
+    })
+})
+
+
 
 app.listen(3000, () => {
     console.log('Server is listening on port 3000');
 });
+
