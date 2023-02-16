@@ -30,6 +30,9 @@ const db = getFirestore();
 db.settings({ ignoreUndefinedProperties: true })
 
 const app = express();
+const config = {
+    headers: {'Access-Control-Allow-Origin': '*'}
+};
 app.use(cors({
     origin: 'moviebrowser.braydenjohnson.dev'
 }))
@@ -37,6 +40,7 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
 app.get('/data/movie/top/:num', (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
     const num = parseInt(req.params.num, 10);
     const moviesRef = db.collection('movies');
     const query = moviesRef.orderBy('rating', 'desc').limit(num);
@@ -51,6 +55,7 @@ app.get('/data/movie/top/:num', (req, res) => {
     });
 });
 app.get('/data/movie/:id', (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
     const objectID = req.params.id;
     const movieRef = db.collection('movies').doc(objectID);
     movieRef.get().then((doc) => {
@@ -66,6 +71,7 @@ app.get('/data/movie/:id', (req, res) => {
     });
 });
 app.put('/data/movie/:id', (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
     // if put request is sent with body rating, name, descriptiontext, or imageurl update movie document with sent data.
     const objectID = req.params.id;
     const movieRef = db.collection('movies').doc(objectID);
@@ -114,6 +120,7 @@ app.put('/data/movie/:id', (req, res) => {
 });
 
 app.post('/data/movie/new', (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
     const movieRef = db.collection('movies')
     if (!req.body.name || !req.body.rating || !req.body.descriptiontext || !req.body.year || !req.body.genre) {
         res.send(`Please send all required fields. Missing: ${!req.body.name ? 'name' : ''} ${!req.body.rating ? 'rating' : ''} ${!req.body.descriptiontext ? 'descriptiontext' : ''} ${!req.body.year ? 'year' : ''} ${!req.body.genre ? 'genre' : ''} `);
@@ -141,6 +148,7 @@ app.post('/data/movie/new', (req, res) => {
     })
 })
 app.delete('/data/movie/:id', (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
     const objectID = req.params.id;
     const movieRef = db.collection('movies').doc(objectID);
     movieRef.get().then((doc) => {
@@ -164,6 +172,7 @@ app.delete('/data/movie/:id', (req, res) => {
 })
 
 app.get('/data/search/', (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
     if(!req.body.searchterm) {
         res.end("Please send a searchterm in the body of the request.");
         return;
