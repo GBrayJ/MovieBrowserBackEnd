@@ -122,15 +122,15 @@ app.put('/data/movie/:id', (req, res) => {
 app.post('/data/movie/new', (req, res) => {
     res.set('Access-Control-Allow-Origin', '*');
     const movieRef = db.collection('movies')
-    if (!req.body.name || !req.body.rating || !req.body.descriptiontext || !req.body.year || !req.body.genre) {
-        res.send(`Please send all required fields. Missing: ${!req.body.name ? 'name' : ''} ${!req.body.rating ? 'rating' : ''} ${!req.body.descriptiontext ? 'descriptiontext' : ''} ${!req.body.year ? 'year' : ''} ${!req.body.genre ? 'genre' : ''} `);
+    if (!req.body.name || !req.body.rating || !req.body.descriptiontext || !req.body.year || !req.body.genre || !req.body.imageurl) {
+        res.send(`Please send all required fields. Missing: ${!req.body.name ? 'name' : ''} ${!req.body.rating ? 'rating' : ''} ${!req.body.descriptiontext ? 'descriptiontext' : ''} ${!req.body.year ? 'year' : ''} ${!req.body.genre ? 'genre' : ''} ${!req.body.imageurl ? 'imageurl' : ''}`);
         return;
     }
     let movie = {
         moviename: req.body.name,
         rating: req.body.rating,
         description: req.body.descriptiontext,
-        imageurl: req.body.imageurl ? req.body.imageurl : undefined,
+        imageurl: req.body.imageurl,
         year: req.body.year,
         genre: req.body.genre,
         director: req.body.director ? req.body.director : undefined,
