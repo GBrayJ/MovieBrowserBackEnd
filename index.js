@@ -2,6 +2,7 @@ const algoliasearch = require('algoliasearch');
 const { getFirestore } = require('firebase-admin/firestore');
 const admin = require("firebase-admin");
 const express = require('express');
+const cors = require('cors');
 require('dotenv').config();
 const serviceAccount = {
     "type": process.env.TYPE,
@@ -29,6 +30,9 @@ const db = getFirestore();
 db.settings({ ignoreUndefinedProperties: true })
 
 const app = express();
+app.use(cors({
+    origin: 'moviebrowser.braydenjohnson.dev'
+}))
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
