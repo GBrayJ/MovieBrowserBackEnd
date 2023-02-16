@@ -133,8 +133,8 @@ app.post('/data/movie/new', (req, res) => {
         imageurl: req.body.imageurl,
         year: req.body.year,
         genre: req.body.genre,
-        director: req.body.director ? req.body.director : undefined,
-        actors: req.body.actors ? req.body.actors : undefined
+        director: req.body.director,
+        actors: req.body.actors
     };
     movieRef.add(movie).then((docRef) => {
         movie.objectID = docRef.id;
