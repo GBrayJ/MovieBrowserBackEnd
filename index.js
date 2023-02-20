@@ -17,7 +17,7 @@ const serviceAccount = {
     "client_x509_cert_url": process.env.CLIENT_X509_CERT_URL
 }
 const bodyParser = require("body-parser");
-const client = algoliasearch('P4GH5MJ3RF', '522e655b88c66ee65a01c10a749649eb', {});
+const client = algoliasearch(process.env.ALGOLIA_APP_ID, process.env.ALGOLIA_KEY, {});
 const moviesIndex = client.initIndex('movies');
 const actorsIndex = client.initIndex('actors');
 
@@ -171,16 +171,6 @@ app.delete('/data/movie/:id', (req, res) => {
     })
 })
 
-app.get('/data/search/', (req, res) => {
-    res.set('Access-Control-Allow-Origin', '*');
-    if (!req.body.searchterm) {
-        res.end("Please send a searchterm in the body of the request.");
-        return;
-    }
-    const searchterm = req.body.searchterm;
-    res.end(`Searchterm: ${searchterm}`);
-})
-
 app.get('/movies/actors/:actor', (req, res) => {
     const id = req.params.actor;
     const movieRef = db.collection('movies');
@@ -228,11 +218,12 @@ app.get('/actors/:id', (req, res) => {
 
 app.post('/actors/new', (req, res) => {
   const actorRef = db.collection('actors');
-  if (req.body.name || req.body.imageurl) {
+  if (req.body.name || req.body.imageurl || req.body.description) {
       let actor = {
             actor_info: {
                 name: req.body.name,
-                imageurl: req.body.imageurl
+                imageurl: req.body.imageurl,
+                description: req.body.description
             },
             movies: req.body.movies
       }
@@ -247,7 +238,7 @@ app.post('/actors/new', (req, res) => {
       })
 
   } else {
-      res.send(`Please send all required fields. Missing: ${!req.body.name ? 'name' : ''} ${!req.body.imageurl ? 'imageurl' : ''}`);
+      res.send(`Please send all required fields. Missing: ${!req.body.name ? 'name' : ''} ${!req.body.imageurl ? 'imageurl' : ''} ${!req.body.description ? 'description' : ''}`);
   }
 })
 
@@ -267,6 +258,9 @@ app.put('/actors/:id', (req, res) => {
             }
             if (req.body.movies) {
                 actor.movies = req.body.movies;
+            }
+            if (req.body.description) {
+                actor.actor_info.description = req.body.description;
             }
             actorRef.set(actor).catch((error) => {
                 console.log(error);
