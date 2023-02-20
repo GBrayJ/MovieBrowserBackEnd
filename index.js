@@ -70,9 +70,27 @@ app.get('/data/movie/:id', (req, res) => {
         res.send(`Error getting document: ${error}`);
     });
 });
+
+app.put('/data/movie/actor/:id', (req, res) => {
+  res.set('Access-Control-Allow-Origin', '*');
+    const objectID = req.params.id;
+    const movieRef = db.collection('movies').doc(objectID);
+    movieRef.get().then((doc) => {
+      if (doc.exists) {
+          const movie = doc.data();
+          movie.objectID = doc.id;
+          movie.actors = req.body.actors;
+            movieRef.set(movie);
+            moviesIndex.partialUpdateObject(movie).then((content) => {
+                console.log(content)
+            }).catch((error) => {
+                console.log(error)
+            });
+      }
+    })
+})
 app.put('/data/movie/:id', (req, res) => {
     res.set('Access-Control-Allow-Origin', '*');
-    // if put request is sent with body rating, name, descriptiontext, or imageurl update movie document with sent data.
     const objectID = req.params.id;
     const movieRef = db.collection('movies').doc(objectID);
     movieRef.get().then((doc) => {
@@ -172,6 +190,7 @@ app.delete('/data/movie/:id', (req, res) => {
 })
 
 app.get('/movies/actors/:actor', (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
     const id = req.params.actor;
     const movieRef = db.collection('movies');
     let query = movieRef.where('actors', 'array-contains', id);
@@ -186,6 +205,7 @@ app.get('/movies/actors/:actor', (req, res) => {
     })
 })
 app.get('/actors/find/', (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
     const name = req.body.actor;
     const actorRef = db.collection('actors');
     let query = actorRef.where('actor_info.name', '==', name);
@@ -201,6 +221,7 @@ app.get('/actors/find/', (req, res) => {
 })
 
 app.get('/actors/:id', (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
   const objectID = req.params.id;
     const actorRef = db.collection('actors').doc(objectID);
     actorRef.get().then((doc) => {
@@ -217,6 +238,7 @@ app.get('/actors/:id', (req, res) => {
 })
 
 app.post('/actors/new', (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
   const actorRef = db.collection('actors');
   if (req.body.name || req.body.imageURL || req.body.description) {
       let actor = {
@@ -243,6 +265,7 @@ app.post('/actors/new', (req, res) => {
 })
 
 app.put('/actors/:id', (req, res) => {
+    res.set('Access-Control-Allow-Origin', '*');
   const actorsRef = db.collection('actors');
     const objectID = req.params.id;
     const actorRef = actorsRef.doc(objectID);
