@@ -17,7 +17,7 @@ const serviceAccount = {
     "client_x509_cert_url": process.env.CLIENT_X509_CERT_URL
 }
 const bodyParser = require("body-parser");
-const client = algoliasearch(process.env.ALGOLIA_APP_ID, process.env.ALGOLIA_KEY, {});
+const client = algoliasearch(process.env.ALGOLIA_APP_ID, process.env.ALGOLIA_KEY);
 const moviesIndex = client.initIndex('movies');
 const actorsIndex = client.initIndex('actors');
 
@@ -261,6 +261,9 @@ app.put('/actors/:id', (req, res) => {
             }
             if (req.body.description) {
                 actor.actor_info.description = req.body.description;
+            }
+            if (req.body.actors) {
+                actor.actors = req.body.actors;
             }
             actorRef.set(actor).catch((error) => {
                 console.log(error);
