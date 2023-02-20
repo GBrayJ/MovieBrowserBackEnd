@@ -218,11 +218,11 @@ app.get('/actors/:id', (req, res) => {
 
 app.post('/actors/new', (req, res) => {
   const actorRef = db.collection('actors');
-  if (req.body.name || req.body.imageurl || req.body.description) {
+  if (req.body.name || req.body.imageURL || req.body.description) {
       let actor = {
             actor_info: {
                 name: req.body.name,
-                imageurl: req.body.imageurl,
+                imageurl: req.body.imageURL,
                 description: req.body.description
             },
             movies: req.body.movies
